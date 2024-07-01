@@ -424,6 +424,7 @@ class _CoreBuildOp {
 
 class _LockableDeclarations extends LockableList<css.Declaration> {
   var _isLocked = false;
+  final _properties = HashSet<String>();
   List<css.Declaration>? _values;
 
   @override
@@ -437,14 +438,22 @@ class _LockableDeclarations extends LockableList<css.Declaration> {
   void add(css.Declaration value) {
     assert(!_isLocked, 'Adding after being locked is undeterministic.');
     _values ??= [];
-    _values?.add(value);
+    _add(value);
+  }
+
+  void _add(css.Declaration value) {
+    if (_properties.add(value.property)) {
+      _values!.add(value);
+    }
   }
 
   @override
   void addAll(Iterable<css.Declaration> iterable) {
     assert(!_isLocked, 'Adding after being locked is undeterministic.');
     _values ??= [];
-    _values?.addAll(iterable);
+    for (final value in iterable) {
+      _add(value);
+    }
   }
 }
 
