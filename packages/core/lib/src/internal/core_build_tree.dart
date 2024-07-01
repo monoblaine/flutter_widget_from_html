@@ -323,6 +323,8 @@ class CoreBuildTree extends BuildTree {
       op.onVisitChild(this);
     }
 
+    _customStylesBuilder();
+
     final scopedBuildOps = _buildOps;
     if (scopedBuildOps != null) {
       for (final op in scopedBuildOps) {
@@ -332,8 +334,6 @@ class CoreBuildTree extends BuildTree {
         }
       }
     }
-
-    _customStylesBuilder();
 
     final elementStyles = element.styles;
     if (elementStyles.isNotEmpty) {
