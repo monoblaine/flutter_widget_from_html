@@ -90,6 +90,8 @@ class HtmlWidget extends StatefulWidget {
   /// The default styling for text elements.
   final TextStyle? textStyle;
 
+  final Iterable<String>? blacklistedStyles;
+
   /// Creates a widget that builds Flutter widget tree from html.
   ///
   /// The [html] argument must not be null.
@@ -109,6 +111,7 @@ class HtmlWidget extends StatefulWidget {
     List<dynamic>? rebuildTriggers,
     this.renderMode = RenderMode.column,
     this.textStyle,
+    this.blacklistedStyles,
   }) : _rebuildTriggers = rebuildTriggers;
 
   @override
@@ -132,6 +135,7 @@ class HtmlWidgetState extends State<HtmlWidget> {
   CoreBuildTree get _rootTree => CoreBuildTree.root(
         inheritanceResolvers: _rootResolvers,
         wf: _wf,
+        blacklistedStyles: widget.blacklistedStyles,
       );
 
   Widget get _sliverOrWidget0 => _sliverToBoxAdapterIfNeeded(widget0);

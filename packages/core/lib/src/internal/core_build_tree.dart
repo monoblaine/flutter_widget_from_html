@@ -26,7 +26,8 @@ class CoreBuildTree extends BuildTree {
 
   final BuildTree? _parent;
   final Iterable<_CoreBuildOp> _parentOps;
-  final _styles = _LockableDeclarations();
+  final Iterable<String>? _blacklistedStylePropertyNames;
+  final _LockableDeclarations _styles;
 
   SplayTreeSet<_CoreBuildOp>? _buildOps;
   bool? _isInline;
@@ -37,17 +38,24 @@ class CoreBuildTree extends BuildTree {
     BuildTree? parent,
     Iterable<_CoreBuildOp> parentOps = const [],
     required this.wf,
+    Iterable<String>? blacklistedStylePropertyNames,
   })  : _parent = parent,
-        _parentOps = parentOps;
+        _parentOps = parentOps,
+        _blacklistedStylePropertyNames = blacklistedStylePropertyNames,
+        _styles = _LockableDeclarations(
+          blacklistedPropertyNames: blacklistedStylePropertyNames,
+        );
 
   factory CoreBuildTree.root({
     required InheritanceResolvers inheritanceResolvers,
     required WidgetFactory wf,
+    Iterable<String>? blacklistedStyles,
   }) =>
       CoreBuildTree._(
         element: _rootElement,
         inheritanceResolvers: inheritanceResolvers,
         wf: wf,
+        blacklistedStylePropertyNames: blacklistedStyles,
       );
 
   @override
@@ -131,6 +139,7 @@ class CoreBuildTree extends BuildTree {
           ? _prepareParentOps(copiedParent._parentOps, copiedParent)
           : const [],
       wf: wf,
+      blacklistedStylePropertyNames: _blacklistedStylePropertyNames,
     );
 
     if (copyContents) {
@@ -425,7 +434,13 @@ class _CoreBuildOp {
 class _LockableDeclarations extends LockableList<css.Declaration> {
   var _isLocked = false;
   final _properties = HashSet<String>();
+  final Set<String> _blacklistedProperties;
   List<css.Declaration>? _values;
+
+  _LockableDeclarations({Iterable<String>? blacklistedPropertyNames})
+      : _blacklistedProperties = blacklistedPropertyNames == null
+            ? <String>{}
+            : Set<String>.from(blacklistedPropertyNames);
 
   @override
   bool get isLocked => _isLocked;
@@ -442,7 +457,8 @@ class _LockableDeclarations extends LockableList<css.Declaration> {
   }
 
   void _add(css.Declaration value) {
-    if (_properties.add(value.property)) {
+    if (!_blacklistedProperties.contains(value.property) &&
+        _properties.add(value.property)) {
       _values!.add(value);
     }
   }
